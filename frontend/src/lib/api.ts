@@ -1,6 +1,9 @@
 import { supabase } from './supabase';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = (rawApiUrl && rawApiUrl.startsWith('http'))
+    ? rawApiUrl
+    : 'http://localhost:8000/api';
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
     const { data: { session } } = await supabase.auth.getSession();

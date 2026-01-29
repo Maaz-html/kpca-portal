@@ -1,22 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const getSafeEnv = (key: string): string | undefined => {
-    const val = process.env[key];
-    if (!val || val === 'undefined' || val === 'null' || val.trim() === '') {
-        return undefined;
-    }
-    return val.trim();
-};
+// Next.js requires explicit process.env.NAME for static replacement at build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabaseUrl = getSafeEnv('NEXT_PUBLIC_SUPABASE_URL');
-const supabaseAnonKey = getSafeEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-
-// During Next.js build-time (prerendering), we MUST provide a valid-looking URL
-// even if the environment variables aren't injected yet.
-const isPrerendering = typeof window === 'undefined';
-const hasValidConfig = !!(supabaseUrl && supabaseUrl.startsWith('http'));
+const isTrueConfig = supabaseUrl && supabaseUrl.startsWith('http') && !supabaseUrl.includes('placeholder');
 
 export const supabase = createClient(
-    hasValidConfig ? supabaseUrl! : 'https://build-time-placeholder.supabase.co',
-    hasValidConfig ? supabaseAnonKey! : 'build-time-placeholder-key'
+    isTrueConfig ? supabaseUrl : 'https://build-time-placeholder.supabase.co',
+    isTrueConfig ? supabaseAnonKey! : 'build-time-placeholder-key'
 );
