@@ -1,23 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-const getValidUrl = (url: string | undefined): string => {
-    // Check if the URL is a real HTTP(S) string
-    if (typeof url === 'string' && url.trim().length > 0 && url.startsWith('http')) {
-        return url.trim();
+const getSafeEnv = (key: string): string | undefined => {
+    const val = process.env[key];
+    if (!val || val === 'undefined' || val === 'null' || val.trim() === '') {
+        return undefined;
     }
-    // Return a valid dummy URL during build to prevent crash
-    // This allows the build to finish; the real URL will be used at runtime in the browser.
-    return 'https://placeholder-build-url.supabase.co';
+    return val.trim();
 };
 
-const getValidKey = (key: string | undefined): string => {
-    if (typeof key === 'string' && key.trim().length > 0) {
-        return key.trim();
-    }
-    return 'placeholder-key';
-};
+const supabaseUrl = getSafeEnv('NEXT_PUBLIC_SUPABASE_URL');
+const supabaseAnonKey = getSafeEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+
+// During Next.js build-time (prerendering), we MUST provide a valid-looking URL
+// even if the environment variables aren't injected yet.
+const isPrerendering = typeof window === 'undefined';
+const hasValidConfig = !!(supabaseUrl && supabaseUrl.startsWith('http'));
 
 export const supabase = createClient(
-    getValidUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    getValidKey(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    hasValidConfig ? supabaseUrl! : 'https://build-time-placeholder.supabase.co',
+    hasValidConfig ? supabaseAnonKey! : 'build-time-placeholder-key'
 );
