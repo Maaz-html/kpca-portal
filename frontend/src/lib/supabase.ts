@@ -1,11 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const getValidUrl = (url: string | undefined): string => {
+    // Check if the URL is a real HTTP(S) string
+    if (typeof url === 'string' && url.trim().length > 0 && url.startsWith('http')) {
+        return url.trim();
+    }
+    // Return a valid dummy URL during build to prevent crash
+    // This allows the build to finish; the real URL will be used at runtime in the browser.
+    return 'https://placeholder-build-url.supabase.co';
+};
 
-// During build time on Vercel, these might be missing if not passed correctly.
-// We use placeholders to prevent the build from crashing during pre-rendering.
+const getValidKey = (key: string | undefined): string => {
+    if (typeof key === 'string' && key.trim().length > 0) {
+        return key.trim();
+    }
+    return 'placeholder-key';
+};
+
 export const supabase = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseAnonKey || 'placeholder'
+    getValidUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    getValidKey(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 );
